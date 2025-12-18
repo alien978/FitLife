@@ -17,10 +17,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FitLife">
 
-        <!-- Placeholder for GitHub safety - Replace with your real key locally for testing -->
+        <!-- GOOGLE MAPS API KEY (Safely loaded from local.properties) -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_MAPS_API_KEY_HERE" />
+            android:value="${MAPS_API_KEY}" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

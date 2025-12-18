@@ -2,6 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+// 1. Load the local.properties file
+Properties properties = new Properties()
+if (project.rootProject.file('local.properties').canRead()) {
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+}
+
 android {
     namespace 'com.example.fitlife'
     compileSdk {
@@ -16,6 +22,9 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // 2. Add the API Key as a 'manifestPlaceholders'
+        manifestPlaceholders = [MAPS_API_KEY: properties.getProperty('MAPS_API_KEY', "YOUR_KEY_MISSING")]
     }
 
     buildTypes {
@@ -27,13 +36,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
-    }
-    sourceSets {
-        main {
-            java {
-                srcDirs 'src/main/java'
-            }
-        }
     }
 }
 
