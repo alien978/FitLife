@@ -10,7 +10,6 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -23,13 +22,11 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import com.example.fitlife.R;
-import com.example.fitlife.data.db.AppDatabase;
 import com.example.fitlife.data.model.GymLocation;
 import com.example.fitlife.data.model.WorkoutRoutine;
 import com.example.fitlife.data.repository.WorkoutRoutineRepository;
@@ -115,7 +112,6 @@ public class EditRoutineActivity extends AppCompatActivity {
                 recreateExerciseRows(currentRoutine.exercises);
                 if (currentRoutine.imageUri != null) showImagePreview(Uri.parse(currentRoutine.imageUri));
                 
-                // Select saved location in spinner
                 for (int i = 0; i < allLocations.size(); i++) {
                     if (allLocations.get(i).id == currentRoutine.locationId) {
                         spinnerLocation.setSelection(i + 1);
@@ -143,28 +139,21 @@ public class EditRoutineActivity extends AppCompatActivity {
         names.add("No location assigned");
         for (GymLocation loc : allLocations) names.add(loc.name);
 
-        // Custom adapter to handle "hint" color vs "selected" color
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.spinner_item, names) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 View v = super.getView(position, convertView, parent);
-                if (position == 0) {
-                    ((TextView) v).setTextColor(Color.GRAY); // White/Grey hint color
-                } else {
-                    ((TextView) v).setTextColor(Color.BLACK); // Solid black for selection
-                }
+                ((TextView) v).setTextColor(position == 0 ? Color.GRAY : Color.BLACK);
                 return v;
             }
 
             @Override
             public View getDropDownView(int position, View convertView, @NonNull ViewGroup parent) {
                 View v = super.getDropDownView(position, convertView, parent);
-                ((TextView) v).setTextColor(Color.BLACK); // Always black in the dropdown menu
+                ((TextView) v).setTextColor(Color.BLACK);
                 return v;
             }
         };
-        
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerLocation.setAdapter(adapter);
     }
 
@@ -279,17 +268,15 @@ public class EditRoutineActivity extends AppCompatActivity {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < containerExercises.getChildCount(); i++) {
             View r = containerExercises.getChildAt(i);
-            TextInputEditText etName = r.findViewById(R.id.etDynamicExerciseName);
-            TextInputEditText etSets = r.findViewById(R.id.etDynamicSetsReps);
-            TextInputEditText etNotes = r.findViewById(R.id.etDynamicNotes);
-            
-            String name = etName.getText().toString().trim();
-            String sets = etSets.getText().toString().trim();
-            String notes = etNotes.getText().toString().trim();
-            
-            if (!name.isEmpty()) {
+            TextInputEditText etN = r.findViewById(R.id.etDynamicExerciseName);
+            TextInputEditText etS = r.findViewById(R.id.etDynamicSetsReps);
+            TextInputEditText etNt = r.findViewById(R.id.etDynamicNotes);
+            String n = etN.getText().toString().trim();
+            String s = etS.getText().toString().trim();
+            String nt = etNt.getText().toString().trim();
+            if (!n.isEmpty()) {
                 if (sb.length() > 0) sb.append("\n");
-                sb.append(name).append(" - ").append(sets).append(" - ").append(notes);
+                sb.append(n).append(" - ").append(s).append(" - ").append(nt);
             }
         }
         return sb.toString();
