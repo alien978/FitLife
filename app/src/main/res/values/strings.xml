@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">FitLife</string>
+    <string name="welcome_title">Welcome to FitLife</string>
+    <string name="welcome_subtitle">Your personal workout planner</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="action_login">LOGIN</string>
+    <string name="prompt_signup">Don\'t have an account? Sign up</string>
+    <string name="welcome_back">Welcome back!</string>
+    <string name="my_workout_routines">My Workout Routines</string>
+    <string name="weekly_planner">Weekly Planner</string>
+    <string name="my_gym_locations_map">My Gym Locations (Map)</string>
+    <string name="create_account">Create Account</string>
+    <string name="full_name">Full Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="logout">Logout</string>
+    <string name="add_new_routine">Add New Routine</string>
+    <string name="routine_name">Routine Name</string>
+    <string name="send_checklist_via_sms">Send Checklist via SMS</string>
+    <string name="save_routine">Save Routine</string>
+    <string name="jump_rope">Jump rope</string>
+    <string name="bench">Bench</string>
+    <string name="resistance_bands">Resistance bands</string>
+    <string name="yoga_mat">Yoga mat</string>
+    <string name="dumbbells">Dumbbells</string>
+    <string name="quick_add">Quick Add:</string>
+    <string name="list_equipment_needed_one_per_line">List equipment needed, one per line...</string>
+    <string name="exercises_e_g_bench_press_3x10_squats_4x8">Exercises (e.g. Bench Press 3x10, Squats 4x8)</string>
+    <string name="routine_name_e_g_full_body_strength">Routine Name (e.g. Full Body Strength)</string>
+    <string name="create_edit_routine">Create / Edit Routine</string>
+</resources>

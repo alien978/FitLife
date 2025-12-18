@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.FitLife" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/teal_main</item>
+        <item name="colorPrimaryContainer">@color/teal_light</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:statusBarColor">@color/teal_dark</item>
+        <item name="android:windowBackground">@color/teal_background</item>
+    </style>
+    <style name="Theme.FitLife" parent="Base.Theme.FitLife" />
+</resources>

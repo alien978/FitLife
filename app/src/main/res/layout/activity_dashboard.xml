@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="@color/teal_background">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/welcome_back"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:textColor="@color/teal_dark"
+        android:layout_marginBottom="60dp"/>
+
+    <Button
+        android:id="@+id/btnMyRoutines"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:text="@string/my_workout_routines"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/teal_main"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnPlanner"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:text="@string/weekly_planner"
+        android:textSize="20sp"
+        android:textColor="@color/teal_dark"
+        android:backgroundTint="@color/teal_light"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnMap"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:text="@string/my_gym_locations_map"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/teal_main"
+        android:layout_marginBottom="40dp"/>
+
+    <!-- RED LOGOUT BUTTON -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="@string/logout"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        app:backgroundTint="#D32F2F"
+        app:cornerRadius="12dp"/>
+</LinearLayout>

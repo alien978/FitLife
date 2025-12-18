@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/teal_background"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create / Edit Routine"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/teal_dark"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Routine Name -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRoutineName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Routine Name (e.g. Full Body Strength)"
+                android:textColor="@android:color/black"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Image Selection Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp"
+            android:gravity="center_horizontal">
+
+            <Button
+                android:id="@+id/btnAddImage"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Image"
+                app:icon="@android:drawable/ic_menu_camera" />
+
+            <FrameLayout
+                android:id="@+id/layoutImagePreview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivRoutineImage"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+                    android:background="@color/teal_light"/>
+
+                <ImageButton
+                    android:id="@+id/btnRemoveImage"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/ic_delete"
+                    android:backgroundTint="#D32F2F"
+                    android:contentDescription="Remove image" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- Dynamic Exercises Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Exercises"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/teal_dark"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:id="@+id/containerExercises"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnAddExercise"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+ Add Exercise"
+            android:textColor="@color/teal_main"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Recommended Location Dropdown -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recommended Location"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/teal_dark"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/teal_light"
+            app:cardBackgroundColor="@android:color/transparent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_dialog_map"
+                    app:tint="@color/teal_main" />
+
+                <Spinner
+                    android:id="@+id/spinnerLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="@android:color/transparent"
+                    android:popupBackground="@android:color/white"
+                    android:paddingStart="8dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Equipment Section -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEquipment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Required Equipment"
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:gravity="top"
+                android:textColor="@android:color/black"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/btnQuickAddEquipment"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quick Add Equipment ▾"
+            android:textColor="@color/teal_main"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Save and SMS Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/btnSaveRoutine"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:text="Save Routine"
+                android:backgroundTint="@color/teal_main"
+                android:textColor="@android:color/white"/>
+            <Button
+                android:id="@+id/btnSendSms"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:text="Send via SMS"
+                style="@style/Widget.Material3.Button.OutlinedButton"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardRoutine"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginTop="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/teal_light">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivListThumbnail"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentStart="true"
+                android:scaleType="centerCrop"
+                android:background="@color/teal_light"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/ivListThumbnail"
+                android:layout_toStartOf="@id/ibMenu"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvRoutineName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/teal_dark"/>
+
+                <TextView
+                    android:id="@+id/tvExercisePreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tap to see details"
+                    android:textSize="13sp"
+                    android:textColor="#666666" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/ibMenu"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_more"
+                app:tint="@color/teal_main" />
+        </RelativeLayout>
+
+        <!-- Location Badge (Compact View) -->
+        <LinearLayout
+            android:id="@+id/layoutLocationBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@android:drawable/ic_dialog_map"
+                app:tint="@color/teal_main" />
+            <TextView
+                android:id="@+id/tvLocationNameSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Gym Name"
+                android:textSize="12sp"
+                android:textColor="@color/teal_main" />
+        </LinearLayout>
+
+        <!-- Expandable Content Area -->
+        <LinearLayout
+            android:id="@+id/layoutExpandable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginTop="16dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/teal_light"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Exercises:"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/teal_dark" />
+
+            <TextView
+                android:id="@+id/tvFullExercises"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#333333"
+                android:textSize="15sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Equipment Needed:"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/teal_dark" />
+
+            <TextView
+                android:id="@+id/tvFullEquipment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#333333"
+                android:textSize="15sp" />
+
+            <!-- Detailed Location Info -->
+            <LinearLayout
+                android:id="@+id/layoutFullLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Recommended Location:"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/teal_dark" />
+                <Button
+                    android:id="@+id/btnOpenInMaps"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📍 Open in Maps"
+                    android:textColor="@color/teal_main"
+                    android:padding="0dp" />
+            </LinearLayout>
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivFullImage"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="16dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <CheckBox
+            android:id="@+id/cbCompleted"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:text="Mark Complete"
+            android:textColor="@color/teal_dark"
+            android:buttonTint="@color/teal_main"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
