@@ -16,6 +16,7 @@
         android:orientation="vertical"
         android:padding="12dp">
 
+        <!-- Line 1: Name and Remove -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -43,9 +44,10 @@
                 android:layout_marginStart="8dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                app:tint="#D32F2F"/>
+                app:tint="@android:color/black"/>
         </LinearLayout>
 
+        <!-- Line 2: Sets and Reps -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -56,10 +58,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Sets x Reps"
+                android:hint="Sets (e.g. 3)"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etDynamicSetsReps"
+                    android:id="@+id/etDynamicSets"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
@@ -69,17 +71,33 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.5"
+                android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:hint="Notes"
+                android:hint="Reps (e.g. 10)"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etDynamicNotes"
+                    android:id="@+id/etDynamicReps"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
                     android:textColor="@android:color/black"/>
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
+
+        <!-- Line 3: Notes -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Notes (e.g. focus on form)"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDynamicNotes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@android:color/black"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

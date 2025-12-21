@@ -73,7 +73,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         
         // AUTO-SEED: Add demo locations if list is empty
         if (locations.isEmpty()) {
-            addDemoLocation("University Fitness Center", -37.8368, 144.9280); // Example coordinates
+            addDemoLocation("University Fitness Center", -37.8368, 144.9280);
             addDemoLocation("Riverside Running Park", -37.8200, 144.9500);
             addDemoLocation("Home Workout Space", -37.8136, 144.9631);
             locations = repository.getAllLocations(); // refresh list
@@ -112,14 +112,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void saveLocationToDb(String name, LatLng latLng) {
-        GymLocation newLoc = new GymLocation(name, latLng.latitude, latLng.longitude);
+        String formattedName = capitalizeWords(name);
+        GymLocation newLoc = new GymLocation(formattedName, latLng.latitude, latLng.longitude);
         repository.insert(newLoc);
         
         mMap.addMarker(new MarkerOptions()
                 .position(latLng)
-                .title(name)
+                .title(formattedName)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
         
         Toast.makeText(this, "Location pinned!", Toast.LENGTH_SHORT).show();
+    }
+
+    private String capitalizeWords(String str) {
+        if (str == null || str.isEmpty()) return str;
+        String[] words = str.split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            if (word.length() > 0) {
+                sb.append(Character.toUpperCase(word.charAt(0)))
+                  .append(word.substring(1).toLowerCase())
+                  .append(" ");
+            }
+        }
+        return sb.toString().trim();
     }
 }

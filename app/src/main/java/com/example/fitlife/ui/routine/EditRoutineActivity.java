@@ -122,13 +122,13 @@ public class EditRoutineActivity extends AppCompatActivity {
             }
         } else {
             btnSendSms.setVisibility(View.GONE);
-            addExerciseRow("", "", "");
+            addExerciseRow("", "", "", ""); // Added one empty row with separate fields
         }
 
         btnAddImage.setOnClickListener(v -> showImageSourceDialog());
         btnRemoveImage.setOnClickListener(v -> removeImage());
         btnQuickAdd.setOnClickListener(v -> showQuickAddDialog());
-        btnAddExercise.setOnClickListener(v -> addExerciseRow("", "", ""));
+        btnAddExercise.setOnClickListener(v -> addExerciseRow("", "", "", ""));
         btnSaveRoutine.setOnClickListener(v -> saveRoutine());
         btnSendSms.setOnClickListener(v -> sendSmsChecklist());
     }
@@ -155,6 +155,50 @@ public class EditRoutineActivity extends AppCompatActivity {
             }
         };
         spinnerLocation.setAdapter(adapter);
+    }
+
+    private void addExerciseRow(String name, String sets, String reps, String notes) {
+        View row = LayoutInflater.from(this).inflate(R.layout.item_dynamic_exercise, containerExercises, false);
+        ((TextInputEditText)row.findViewById(R.id.etDynamicExerciseName)).setText(name);
+        ((TextInputEditText)row.findViewById(R.id.etDynamicSets)).setText(sets);
+        ((TextInputEditText)row.findViewById(R.id.etDynamicReps)).setText(reps);
+        ((TextInputEditText)row.findViewById(R.id.etDynamicNotes)).setText(notes);
+        row.findViewById(R.id.btnRemoveExercise).setOnClickListener(v -> containerExercises.removeView(row));
+        containerExercises.addView(row);
+    }
+
+    private void recreateExerciseRows(String combined) {
+        if (combined == null || combined.isEmpty()) return;
+        for (String line : combined.split("\n")) {
+            String[] p = line.split(" - ");
+            // p[0]=name, p[1]=sets, p[2]=reps, p[3]=notes
+            addExerciseRow(
+                p.length > 0 ? p[0] : "", 
+                p.length > 1 ? p[1] : "", 
+                p.length > 2 ? p[2] : "", 
+                p.length > 3 ? p[3] : ""
+            );
+        }
+    }
+
+    private String getCombinedExercises() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < containerExercises.getChildCount(); i++) {
+            View r = containerExercises.getChildAt(i);
+            String n = ((TextInputEditText)r.findViewById(R.id.etDynamicExerciseName)).getText().toString().trim();
+            String s = ((TextInputEditText)r.findViewById(R.id.etDynamicSets)).getText().toString().trim();
+            String rep = ((TextInputEditText)r.findViewById(R.id.etDynamicReps)).getText().toString().trim();
+            String nt = ((TextInputEditText)r.findViewById(R.id.etDynamicNotes)).getText().toString().trim();
+            
+            if (!n.isEmpty()) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(n);
+                sb.append(" - ").append(s.isEmpty() ? "0" : s);
+                sb.append(" - ").append(rep.isEmpty() ? "0" : rep);
+                sb.append(" - ").append(nt.isEmpty() ? "No notes" : nt);
+            }
+        }
+        return sb.toString();
     }
 
     private void saveRoutine() {
@@ -245,41 +289,6 @@ public class EditRoutineActivity extends AppCompatActivity {
         savedImageUriString = null;
         layoutImagePreview.setVisibility(View.GONE);
         btnAddImage.setVisibility(View.VISIBLE);
-    }
-
-    private void addExerciseRow(String name, String sets, String notes) {
-        View row = LayoutInflater.from(this).inflate(R.layout.item_dynamic_exercise, containerExercises, false);
-        ((TextInputEditText)row.findViewById(R.id.etDynamicExerciseName)).setText(name);
-        ((TextInputEditText)row.findViewById(R.id.etDynamicSetsReps)).setText(sets);
-        ((TextInputEditText)row.findViewById(R.id.etDynamicNotes)).setText(notes);
-        row.findViewById(R.id.btnRemoveExercise).setOnClickListener(v -> containerExercises.removeView(row));
-        containerExercises.addView(row);
-    }
-
-    private void recreateExerciseRows(String combined) {
-        if (combined == null || combined.isEmpty()) return;
-        for (String line : combined.split("\n")) {
-            String[] p = line.split(" - ");
-            addExerciseRow(p.length > 0 ? p[0] : "", p.length > 1 ? p[1] : "", p.length > 2 ? p[2] : "");
-        }
-    }
-
-    private String getCombinedExercises() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < containerExercises.getChildCount(); i++) {
-            View r = containerExercises.getChildAt(i);
-            TextInputEditText etN = r.findViewById(R.id.etDynamicExerciseName);
-            TextInputEditText etS = r.findViewById(R.id.etDynamicSetsReps);
-            TextInputEditText etNt = r.findViewById(R.id.etDynamicNotes);
-            String n = etN.getText().toString().trim();
-            String s = etS.getText().toString().trim();
-            String nt = etNt.getText().toString().trim();
-            if (!n.isEmpty()) {
-                if (sb.length() > 0) sb.append("\n");
-                sb.append(n).append(" - ").append(s).append(" - ").append(nt);
-            }
-        }
-        return sb.toString();
     }
 
     private void sendSmsChecklist() {

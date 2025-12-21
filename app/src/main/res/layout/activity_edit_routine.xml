@@ -34,48 +34,6 @@
                 android:textColor="@android:color/black"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Image Selection Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp"
-            android:gravity="center_horizontal">
-
-            <Button
-                android:id="@+id/btnAddImage"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Add Image"
-                app:icon="@android:drawable/ic_menu_camera" />
-
-            <FrameLayout
-                android:id="@+id/layoutImagePreview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:visibility="gone">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/ivRoutineImage"
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
-                    android:scaleType="centerCrop"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
-                    android:background="@color/teal_light"/>
-
-                <ImageButton
-                    android:id="@+id/btnRemoveImage"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_gravity="top|end"
-                    android:background="@drawable/ic_delete"
-                    android:backgroundTint="#D32F2F"
-                    android:contentDescription="Remove image" />
-            </FrameLayout>
-        </LinearLayout>
-
         <!-- Dynamic Exercises Section -->
         <TextView
             android:layout_width="wrap_content"
@@ -145,31 +103,86 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Equipment Section -->
-        <com.google.android.material.textfield.TextInputLayout
+        <!-- Smart Equipment Box with integrated Quick Add -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etEquipment"
+            android:layout_marginBottom="24dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutEquipment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Required Equipment"
-                android:inputType="textMultiLine"
-                android:minLines="3"
-                android:gravity="top"
-                android:textColor="@android:color/black"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEquipment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Required Equipment"
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:gravity="top"
+                    android:paddingBottom="40dp"
+                    android:textColor="@android:color/black"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
-            android:id="@+id/btnQuickAddEquipment"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnQuickAddEquipment"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/layoutEquipment"
+                android:layout_alignEnd="@id/layoutEquipment"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:text="Quick Add"
+                app:icon="@android:drawable/ic_input_add"
+                android:textColor="@color/teal_main"
+                app:iconTint="@color/teal_main"
+                android:textSize="12sp" />
+        </RelativeLayout>
+
+        <!-- Image Selection Section (Moved to Bottom) -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Quick Add Equipment ▾"
-            android:textColor="@color/teal_main"
-            android:layout_marginBottom="32dp"/>
+            android:orientation="vertical"
+            android:layout_marginBottom="32dp"
+            android:gravity="center_horizontal">
+
+            <Button
+                android:id="@+id/btnAddImage"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Image"
+                app:icon="@android:drawable/ic_menu_camera" />
+
+            <FrameLayout
+                android:id="@+id/layoutImagePreview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivRoutineImage"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+                    android:background="@color/teal_light"/>
+
+                <ImageButton
+                    android:id="@+id/btnRemoveImage"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/ic_delete"
+                    android:backgroundTint="#D32F2F"
+                    android:contentDescription="Remove image" />
+            </FrameLayout>
+        </LinearLayout>
 
         <!-- Save and SMS Buttons -->
         <LinearLayout
