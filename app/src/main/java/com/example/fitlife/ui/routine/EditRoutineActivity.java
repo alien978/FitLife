@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.telephony.SmsManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import com.example.fitlife.R;
@@ -122,7 +124,7 @@ public class EditRoutineActivity extends AppCompatActivity {
             }
         } else {
             btnSendSms.setVisibility(View.GONE);
-            addExerciseRow("", "", "", ""); // Added one empty row with separate fields
+            addExerciseRow("", "", "", "");
         }
 
         btnAddImage.setOnClickListener(v -> showImageSourceDialog());
@@ -130,8 +132,70 @@ public class EditRoutineActivity extends AppCompatActivity {
         btnQuickAdd.setOnClickListener(v -> showQuickAddDialog());
         btnAddExercise.setOnClickListener(v -> addExerciseRow("", "", "", ""));
         btnSaveRoutine.setOnClickListener(v -> saveRoutine());
-        btnSendSms.setOnClickListener(v -> sendSmsChecklist());
+        btnSendSms.setOnClickListener(v -> checkSmsPermission());
     }
+
+    private void checkSmsPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, 101);
+        } else {
+            showSmsDialog();
+        }
+    }
+
+    private void showSmsDialog() {
+        if (currentRoutine == null) return;
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_send_sms, null);
+        TextInputEditText etPhone = dialogView.findViewById(R.id.etSmsPhoneNumber);
+        TextInputEditText etMsg = dialogView.findViewById(R.id.etSmsMessage);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancelSms);
+        Button btnSend = dialogView.findViewById(R.id.btnConfirmSendSms);
+
+        // Pre-fill message
+        String prefilledMsg = "Hey! For " + currentRoutine.name + " routine, please bring:\n" +
+                formatEquipmentListForSms(currentRoutine.equipment) +
+                "\nThanks! See you at the gym.";
+        etMsg.setText(prefilledMsg);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnSend.setOnClickListener(v -> {
+            String phone = etPhone.getText().toString().trim();
+            String msg = etMsg.getText().toString().trim();
+
+            if (phone.isEmpty() || msg.isEmpty()) {
+                Toast.makeText(this, "Please enter phone and message", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(phone, null, msg, null, null);
+                Toast.makeText(this, "SMS Sent!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } catch (Exception e) {
+                Toast.makeText(this, "Error sending SMS", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private String formatEquipmentListForSms(String equipment) {
+        if (equipment == null || equipment.trim().isEmpty()) return "• No specific equipment needed";
+        StringBuilder sb = new StringBuilder();
+        for (String item : equipment.split("\n")) {
+            String trimmed = item.trim();
+            if (!trimmed.isEmpty()) sb.append("• ").append(trimmed).append("\n");
+        }
+        return sb.toString().trim();
+    }
+
+    // --- REPOSITORY AND OTHER METHODS ---
 
     private void setupLocationSpinner() {
         allLocations = locationRepository.getAllLocations();
@@ -146,7 +210,6 @@ public class EditRoutineActivity extends AppCompatActivity {
                 ((TextView) v).setTextColor(position == 0 ? Color.GRAY : Color.BLACK);
                 return v;
             }
-
             @Override
             public View getDropDownView(int position, View convertView, @NonNull ViewGroup parent) {
                 View v = super.getDropDownView(position, convertView, parent);
@@ -157,57 +220,11 @@ public class EditRoutineActivity extends AppCompatActivity {
         spinnerLocation.setAdapter(adapter);
     }
 
-    private void addExerciseRow(String name, String sets, String reps, String notes) {
-        View row = LayoutInflater.from(this).inflate(R.layout.item_dynamic_exercise, containerExercises, false);
-        ((TextInputEditText)row.findViewById(R.id.etDynamicExerciseName)).setText(name);
-        ((TextInputEditText)row.findViewById(R.id.etDynamicSets)).setText(sets);
-        ((TextInputEditText)row.findViewById(R.id.etDynamicReps)).setText(reps);
-        ((TextInputEditText)row.findViewById(R.id.etDynamicNotes)).setText(notes);
-        row.findViewById(R.id.btnRemoveExercise).setOnClickListener(v -> containerExercises.removeView(row));
-        containerExercises.addView(row);
-    }
-
-    private void recreateExerciseRows(String combined) {
-        if (combined == null || combined.isEmpty()) return;
-        for (String line : combined.split("\n")) {
-            String[] p = line.split(" - ");
-            // p[0]=name, p[1]=sets, p[2]=reps, p[3]=notes
-            addExerciseRow(
-                p.length > 0 ? p[0] : "", 
-                p.length > 1 ? p[1] : "", 
-                p.length > 2 ? p[2] : "", 
-                p.length > 3 ? p[3] : ""
-            );
-        }
-    }
-
-    private String getCombinedExercises() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < containerExercises.getChildCount(); i++) {
-            View r = containerExercises.getChildAt(i);
-            String n = ((TextInputEditText)r.findViewById(R.id.etDynamicExerciseName)).getText().toString().trim();
-            String s = ((TextInputEditText)r.findViewById(R.id.etDynamicSets)).getText().toString().trim();
-            String rep = ((TextInputEditText)r.findViewById(R.id.etDynamicReps)).getText().toString().trim();
-            String nt = ((TextInputEditText)r.findViewById(R.id.etDynamicNotes)).getText().toString().trim();
-            
-            if (!n.isEmpty()) {
-                if (sb.length() > 0) sb.append("\n");
-                sb.append(n);
-                sb.append(" - ").append(s.isEmpty() ? "0" : s);
-                sb.append(" - ").append(rep.isEmpty() ? "0" : rep);
-                sb.append(" - ").append(nt.isEmpty() ? "No notes" : nt);
-            }
-        }
-        return sb.toString();
-    }
-
     private void saveRoutine() {
         String name = etRoutineName.getText().toString().trim();
         if (name.isEmpty()) { Toast.makeText(this, "Enter name", Toast.LENGTH_SHORT).show(); return; }
-        
         String exercises = getCombinedExercises();
         String equipment = etEquipment.getText().toString().trim();
-        
         int locPos = spinnerLocation.getSelectedItemPosition();
         int locId = (locPos == 0) ? -1 : allLocations.get(locPos - 1).id;
         String locName = (locPos == 0) ? null : allLocations.get(locPos - 1).name;
@@ -228,9 +245,7 @@ public class EditRoutineActivity extends AppCompatActivity {
 
     private void showQuickAddDialog() {
         Arrays.fill(checkedItems, false);
-        new AlertDialog.Builder(this)
-                .setTitle("Select Equipment")
-                .setMultiChoiceItems(equipmentOptions, checkedItems, (dialog, which, isChecked) -> checkedItems[which] = isChecked)
+        new AlertDialog.Builder(this).setTitle("Select Equipment").setMultiChoiceItems(equipmentOptions, checkedItems, (dialog, which, isChecked) -> checkedItems[which] = isChecked)
                 .setPositiveButton("Add Selected", (dialog, which) -> {
                     StringBuilder sb = new StringBuilder(etEquipment.getText().toString());
                     for (int i = 0; i < equipmentOptions.length; i++) {
@@ -240,8 +255,7 @@ public class EditRoutineActivity extends AppCompatActivity {
                         }
                     }
                     etEquipment.setText(sb.toString().trim());
-                })
-                .setNegativeButton("Cancel", null).show();
+                }).setNegativeButton("Cancel", null).show();
     }
 
     private void showImageSourceDialog() {
@@ -291,10 +305,37 @@ public class EditRoutineActivity extends AppCompatActivity {
         btnAddImage.setVisibility(View.VISIBLE);
     }
 
-    private void sendSmsChecklist() {
-        if (currentRoutine == null) return;
-        Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:"));
-        intent.putExtra("sms_body", "Routine: " + currentRoutine.name + "\nLocation: " + (currentRoutine.locationName != null ? currentRoutine.locationName : "None") + "\n\nEquipment:\n" + currentRoutine.equipment);
-        startActivity(intent);
+    private void addExerciseRow(String name, String sets, String reps, String notes) {
+        View row = LayoutInflater.from(this).inflate(R.layout.item_dynamic_exercise, containerExercises, false);
+        ((TextInputEditText)row.findViewById(R.id.etDynamicExerciseName)).setText(name);
+        ((TextInputEditText)row.findViewById(R.id.etDynamicSets)).setText(sets);
+        ((TextInputEditText)row.findViewById(R.id.etDynamicReps)).setText(reps);
+        ((TextInputEditText)row.findViewById(R.id.etDynamicNotes)).setText(notes);
+        row.findViewById(R.id.btnRemoveExercise).setOnClickListener(v -> containerExercises.removeView(row));
+        containerExercises.addView(row);
+    }
+
+    private void recreateExerciseRows(String combined) {
+        if (combined == null || combined.isEmpty()) return;
+        for (String line : combined.split("\n")) {
+            String[] p = line.split(" - ");
+            addExerciseRow(p.length > 0 ? p[0] : "", p.length > 1 ? p[1] : "", p.length > 2 ? p[2] : "", p.length > 3 ? p[3] : "");
+        }
+    }
+
+    private String getCombinedExercises() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < containerExercises.getChildCount(); i++) {
+            View r = containerExercises.getChildAt(i);
+            String n = ((TextInputEditText)r.findViewById(R.id.etDynamicExerciseName)).getText().toString().trim();
+            String s = ((TextInputEditText)r.findViewById(R.id.etDynamicSets)).getText().toString().trim();
+            String rep = ((TextInputEditText)r.findViewById(R.id.etDynamicReps)).getText().toString().trim();
+            String nt = ((TextInputEditText)r.findViewById(R.id.etDynamicNotes)).getText().toString().trim();
+            if (!n.isEmpty()) {
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(n).append(" - ").append(s.isEmpty() ? "0" : s).append(" - ").append(rep.isEmpty() ? "0" : rep).append(" - ").append(nt.isEmpty() ? "No notes" : nt);
+            }
+        }
+        return sb.toString();
     }
 }
