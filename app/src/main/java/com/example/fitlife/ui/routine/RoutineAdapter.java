@@ -1,7 +1,12 @@
 package com.example.fitlife.ui.routine;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
+import android.telephony.SmsManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,13 +19,17 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.fitlife.R;
-import com.example.fitlife.data.model.GymLocation;
 import com.example.fitlife.data.model.WorkoutRoutine;
 import com.example.fitlife.data.repository.WorkoutRoutineRepository;
 import com.example.fitlife.data.repository.GymLocationRepository;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.textfield.TextInputEditText;
+import java.util.ArrayList;
 import java.util.List;
 
 public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineViewHolder> {
@@ -87,28 +96,22 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
             tvRoutineName.setText(routine.name);
             cbCompleted.setChecked(routine.isCompleted);
 
-            // 1. Location Handling
             if (routine.locationName != null && !routine.locationName.isEmpty()) {
                 tvLocationNameSmall.setText(routine.locationName);
                 layoutLocationBadge.setVisibility(View.VISIBLE);
                 layoutFullLocation.setVisibility(View.VISIBLE);
-                
                 btnOpenInMaps.setOnClickListener(v -> {
-                    GymLocation loc = locationRepository.getLocationById(routine.locationId);
+                    com.example.fitlife.data.model.GymLocation loc = locationRepository.getLocationById(routine.locationId);
                     if (loc != null) {
-                        // FIXED: Using exact coordinates with a label to prevent "general" search
                         String geoUri = "geo:0,0?q=" + loc.latitude + "," + loc.longitude + "(" + Uri.encode(loc.name) + ")";
                         Uri gmmIntentUri = Uri.parse(geoUri);
                         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                         mapIntent.setPackage("com.google.android.apps.maps");
-                        
                         if (mapIntent.resolveActivity(context.getPackageManager()) != null) {
                             context.startActivity(mapIntent);
                         } else {
                             context.startActivity(new Intent(Intent.ACTION_VIEW, gmmIntentUri));
                         }
-                    } else {
-                        Toast.makeText(context, "Location data not found", Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
@@ -116,7 +119,6 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
                 layoutFullLocation.setVisibility(View.GONE);
             }
 
-            // 2. Preview Text
             if (routine.exercises != null && !routine.exercises.isEmpty()) {
                 String[] lines = routine.exercises.split("\n");
                 tvExercisePreview.setText(lines.length + " exercises • Tap to view details");
@@ -124,11 +126,9 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
                 tvExercisePreview.setText("No exercises • Tap to view details");
             }
 
-            // 3. Full Details
             tvFullExercises.setText(formatNumberedList(routine.exercises));
             tvFullEquipment.setText(formatBulletedList(routine.equipment));
 
-            // 4. Image handling
             if (routine.imageUri != null && !routine.imageUri.isEmpty()) {
                 try {
                     Uri uri = Uri.parse(routine.imageUri);
@@ -145,7 +145,6 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
                 ivFullImage.setVisibility(View.GONE);
             }
 
-            // TAP CARD TO EXPAND/COLLAPSE
             cardRoutine.setOnClickListener(v -> {
                 if (layoutExpandable.getVisibility() == View.VISIBLE) {
                     layoutExpandable.setVisibility(View.GONE);
@@ -156,10 +155,8 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
                 }
             });
 
-            // 3-Dots Menu
             ibMenu.setOnClickListener(v -> showPopupMenu(v, routine));
 
-            // Checkbox logic
             cbCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (routine.isCompleted != isChecked) {
                     routine.isCompleted = isChecked;
@@ -180,23 +177,71 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
                     intent.putExtra("ROUTINE_ID", routine.id);
                     context.startActivity(intent);
                 } else if (title.equals("Send SMS Checklist")) {
-                    sendSms(routine);
+                    checkSmsPermission(routine);
                 }
                 return true;
             });
             popup.show();
         }
 
-        private void sendSms(WorkoutRoutine routine) {
-            String message = "FitLife Checklist: " + routine.name + "\n" +
+        private void checkSmsPermission(WorkoutRoutine routine) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.SEND_SMS}, 101);
+            } else {
+                showInAppSmsDialog(routine);
+            }
+        }
+
+        private void showInAppSmsDialog(WorkoutRoutine routine) {
+            View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_send_sms, null);
+            TextInputEditText etPhone = dialogView.findViewById(R.id.etSmsPhoneNumber);
+            TextInputEditText etMsg = dialogView.findViewById(R.id.etSmsMessage);
+            Button btnCancel = dialogView.findViewById(R.id.btnCancelSms);
+            Button btnSend = dialogView.findViewById(R.id.btnConfirmSendSms);
+
+            String prefilledMsg = "FitLife Checklist: " + routine.name + "\n" +
                     "Location: " + (routine.locationName != null ? routine.locationName : "None") + "\n\n" +
                     "Equipment:\n" + formatBulletedList(routine.equipment) + 
                     "\n\nExercises:\n" + routine.exercises;
-            
-            Intent intent = new Intent(Intent.ACTION_SENDTO);
-            intent.setData(Uri.parse("smsto:"));
-            intent.putExtra("sms_body", message);
-            context.startActivity(intent);
+            etMsg.setText(prefilledMsg);
+
+            AlertDialog dialog = new AlertDialog.Builder(context)
+                    .setView(dialogView)
+                    .create();
+
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+            btnSend.setOnClickListener(v -> {
+                String phone = etPhone.getText().toString().trim();
+                String msg = etMsg.getText().toString().trim();
+
+                if (phone.isEmpty()) {
+                    Toast.makeText(context, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                try {
+                    SmsManager smsManager;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        smsManager = context.getSystemService(SmsManager.class);
+                    } else {
+                        smsManager = SmsManager.getDefault();
+                    }
+                    
+                    if (msg.length() > 160) {
+                        ArrayList<String> parts = smsManager.divideMessage(msg);
+                        smsManager.sendMultipartTextMessage(phone, null, parts, null, null);
+                    } else {
+                        smsManager.sendTextMessage(phone, null, msg, null, null);
+                    }
+                    
+                    Toast.makeText(context, "SMS Sent Successfully!", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                } catch (Exception e) {
+                    Toast.makeText(context, "Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+
+            dialog.show();
         }
 
         private String formatBulletedList(String text) {

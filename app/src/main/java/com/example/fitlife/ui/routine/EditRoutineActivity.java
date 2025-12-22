@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.telephony.SmsManager;
@@ -29,6 +30,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import com.example.fitlife.R;
+import com.example.fitlife.data.db.AppDatabase;
 import com.example.fitlife.data.model.GymLocation;
 import com.example.fitlife.data.model.WorkoutRoutine;
 import com.example.fitlife.data.repository.WorkoutRoutineRepository;
@@ -152,7 +154,6 @@ public class EditRoutineActivity extends AppCompatActivity {
         Button btnCancel = dialogView.findViewById(R.id.btnCancelSms);
         Button btnSend = dialogView.findViewById(R.id.btnConfirmSendSms);
 
-        // Pre-fill message
         String prefilledMsg = "Hey! For " + currentRoutine.name + " routine, please bring:\n" +
                 formatEquipmentListForSms(currentRoutine.equipment) +
                 "\nThanks! See you at the gym.";
@@ -167,18 +168,30 @@ public class EditRoutineActivity extends AppCompatActivity {
             String phone = etPhone.getText().toString().trim();
             String msg = etMsg.getText().toString().trim();
 
-            if (phone.isEmpty() || msg.isEmpty()) {
-                Toast.makeText(this, "Please enter phone and message", Toast.LENGTH_SHORT).show();
+            if (phone.isEmpty()) {
+                Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             try {
-                SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(phone, null, msg, null, null);
-                Toast.makeText(this, "SMS Sent!", Toast.LENGTH_SHORT).show();
+                SmsManager smsManager;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    smsManager = this.getSystemService(SmsManager.class);
+                } else {
+                    smsManager = SmsManager.getDefault();
+                }
+                
+                if (msg.length() > 160) {
+                    ArrayList<String> parts = smsManager.divideMessage(msg);
+                    smsManager.sendMultipartTextMessage(phone, null, parts, null, null);
+                } else {
+                    smsManager.sendTextMessage(phone, null, msg, null, null);
+                }
+                
+                Toast.makeText(this, "SMS Sent Successfully!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             } catch (Exception e) {
-                Toast.makeText(this, "Error sending SMS", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to send: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
 
@@ -327,10 +340,14 @@ public class EditRoutineActivity extends AppCompatActivity {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < containerExercises.getChildCount(); i++) {
             View r = containerExercises.getChildAt(i);
-            String n = ((TextInputEditText)r.findViewById(R.id.etDynamicExerciseName)).getText().toString().trim();
-            String s = ((TextInputEditText)r.findViewById(R.id.etDynamicSets)).getText().toString().trim();
-            String rep = ((TextInputEditText)r.findViewById(R.id.etDynamicReps)).getText().toString().trim();
-            String nt = ((TextInputEditText)r.findViewById(R.id.etDynamicNotes)).getText().toString().trim();
+            TextInputEditText etN = r.findViewById(R.id.etDynamicExerciseName);
+            TextInputEditText etS = r.findViewById(R.id.etDynamicSets);
+            TextInputEditText etR = r.findViewById(R.id.etDynamicReps);
+            TextInputEditText etNt = r.findViewById(R.id.etDynamicNotes);
+            String n = etN.getText().toString().trim();
+            String s = etS.getText().toString().trim();
+            String rep = etR.getText().toString().trim();
+            String nt = etNt.getText().toString().trim();
             if (!n.isEmpty()) {
                 if (sb.length() > 0) sb.append("\n");
                 sb.append(n).append(" - ").append(s.isEmpty() ? "0" : s).append(" - ").append(rep.isEmpty() ? "0" : rep).append(" - ").append(nt.isEmpty() ? "No notes" : nt);

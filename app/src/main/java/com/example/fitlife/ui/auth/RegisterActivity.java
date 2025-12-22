@@ -27,6 +27,12 @@ public class RegisterActivity extends AppCompatActivity {
         TextInputEditText etPassword = findViewById(R.id.etPassword);
         TextInputEditText etConfirm = findViewById(R.id.etConfirmPassword);
 
+        // Connect the "Login" link
+        findViewById(R.id.tvGoToLogin).setOnClickListener(v -> {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        });
+
         findViewById(R.id.btnRegister).setOnClickListener(v -> {
             String name = Objects.requireNonNull(etName.getText()).toString().trim();
             String email = Objects.requireNonNull(etEmail.getText()).toString().trim();
