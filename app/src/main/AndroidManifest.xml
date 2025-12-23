@@ -32,6 +32,17 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Splash Screen with dark theme to prevent white flash -->
+        <activity
+            android:name=".ui.auth.SplashActivity"
+            android:theme="@style/Theme.FitLife.Splash"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         
         <activity android:name=".ui.map.MapActivity" android:exported="false" />
         <activity android:name=".ui.home.WeeklyPlannerActivity" android:exported="false" />
@@ -48,12 +59,7 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false" />
     </application>
 
 </manifest>

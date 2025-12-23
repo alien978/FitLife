@@ -34,20 +34,21 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // NEW: Secure login using hashed password
             if (userViewModel.checkLogin(email, password)) {
                 User user = userViewModel.getUserByEmail(email);
-                String name = (user != null && user.fullName != null) ? user.fullName : "User";
-                Toast.makeText(this, "Welcome back, " + name + "!", Toast.LENGTH_LONG).show();
-
-                startActivity(new Intent(LoginActivity.this, DashboardActivity.class));
-                finish(); // prevents going back to login
+                String name = (user != null && user.fullName != null) ? user.fullName : "Athlete";
+                
+                Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
+                intent.putExtra("USER_NAME", name); // Pass the name to the dashboard
+                startActivity(intent);
+                
+                Toast.makeText(this, "Logged in as " + name, Toast.LENGTH_SHORT).show();
+                finish();
             } else {
                 Toast.makeText(this, "Wrong email or password", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Go to register
         findViewById(R.id.tvGoToRegister).setOnClickListener(v ->
                 startActivity(new Intent(this, RegisterActivity.class)));
     }
