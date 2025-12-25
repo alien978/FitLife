@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.widget.Toast;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.fitlife.R;
+import com.example.fitlife.data.db.AppDatabase;
 import com.example.fitlife.data.model.User;
+import com.example.fitlife.data.model.WeeklyPlan;
 import com.google.android.material.textfield.TextInputEditText;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +16,7 @@ import java.util.Objects;
 public class RegisterActivity extends AppCompatActivity {
 
     private UserViewModel userViewModel;
+    private AppDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,13 +24,13 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        db = AppDatabase.getDatabase(this);
 
         TextInputEditText etName = findViewById(R.id.etName);
         TextInputEditText etEmail = findViewById(R.id.etEmail);
         TextInputEditText etPassword = findViewById(R.id.etPassword);
         TextInputEditText etConfirm = findViewById(R.id.etConfirmPassword);
 
-        // Connect the "Login" link
         findViewById(R.id.tvGoToLogin).setOnClickListener(v -> {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -52,12 +55,32 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
+            // 1. Register User
             User newUser = new User(name, email, pass);
             userViewModel.registerUser(newUser);
+            
+            // Get the newly created user to initialize their plan
+            User registeredUser = userViewModel.getUserByEmail(email);
+            if (registeredUser != null) {
+                // 2. Initialize User's Weekly Plan in background
+                initializeUserWeeklyPlan(registeredUser.id);
 
-            Toast.makeText(this, "Registration successful!", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
+                Toast.makeText(this, "Account created! Please login.", Toast.LENGTH_LONG).show();
+                
+                // 3. Redirect to Login Activity
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
         });
+    }
+
+    private void initializeUserWeeklyPlan(int userId) {
+        String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+        new Thread(() -> {
+            for (String day : days) {
+                db.weeklyPlanDao().updateDayPlan(new WeeklyPlan(day, userId, -1, "Rest Day", "No routine assigned", false));
+            }
+        }).start();
     }
 }

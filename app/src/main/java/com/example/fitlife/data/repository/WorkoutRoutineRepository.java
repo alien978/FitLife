@@ -15,8 +15,8 @@ public class WorkoutRoutineRepository {
         dao = db.workoutRoutineDao();
     }
 
-    public List<WorkoutRoutine> getAllRoutines() {
-        return dao.getAllRoutines();
+    public List<WorkoutRoutine> getAllRoutines(int userId) {
+        return dao.getAllRoutines(userId);
     }
 
     public WorkoutRoutine getRoutineById(int routineId) {

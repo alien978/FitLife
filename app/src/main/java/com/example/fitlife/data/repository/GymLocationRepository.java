@@ -14,8 +14,8 @@ public class GymLocationRepository {
         dao = db.gymLocationDao();
     }
 
-    public List<GymLocation> getAllLocations() {
-        return dao.getAllLocations();
+    public List<GymLocation> getAllLocations(int userId) {
+        return dao.getAllLocations(userId);
     }
 
     public GymLocation getLocationById(int id) {

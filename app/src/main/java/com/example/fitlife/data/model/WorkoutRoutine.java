@@ -10,19 +10,20 @@ public class WorkoutRoutine {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
+    public int userId; // Link to the user who created this
     public String name;
     public String exercises;
     public String equipment;
     public String imageUri;
     
-    // NEW: Geotagging fields
-    public int locationId = -1; // -1 means no location assigned
+    public int locationId = -1;
     public String locationName;
 
     @ColumnInfo(defaultValue = "0")
     public boolean isCompleted;
 
-    public WorkoutRoutine(String name, String exercises, String equipment, String imageUri, int locationId, String locationName) {
+    public WorkoutRoutine(int userId, String name, String exercises, String equipment, String imageUri, int locationId, String locationName) {
+        this.userId = userId;
         this.name = name;
         this.exercises = exercises;
         this.equipment = equipment;

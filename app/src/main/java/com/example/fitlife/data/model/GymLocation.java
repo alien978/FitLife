@@ -8,11 +8,13 @@ public class GymLocation {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
+    public int userId; // Owner of this location
     public String name;
     public double latitude;
     public double longitude;
 
-    public GymLocation(String name, double latitude, double longitude) {
+    public GymLocation(int userId, String name, double latitude, double longitude) {
+        this.userId = userId;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;

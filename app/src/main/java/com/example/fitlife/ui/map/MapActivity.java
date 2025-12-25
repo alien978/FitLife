@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat;
 import com.example.fitlife.R;
 import com.example.fitlife.data.model.GymLocation;
 import com.example.fitlife.data.repository.GymLocationRepository;
+import com.example.fitlife.utils.SessionManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -28,6 +29,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private GymLocationRepository repository;
     private FusedLocationProviderClient fusedLocationClient;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         repository = new GymLocationRepository(getApplication());
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        sessionManager = new SessionManager(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -48,6 +51,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
         
+        // Set default location to Kathmandu, Nepal if GPS is not available yet
+        LatLng kathmandu = new LatLng(27.7172, 85.3240);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(kathmandu, 12));
+
         enableUserLocation();
         loadSavedMarkers();
 
@@ -69,14 +76,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void loadSavedMarkers() {
-        List<GymLocation> locations = repository.getAllLocations();
+        int userId = sessionManager.getUserId();
+        List<GymLocation> locations = repository.getAllLocations(userId);
         
-        // AUTO-SEED: Add demo locations if list is empty
+        // AUTO-SEED: Add Nepal-specific demo locations if list is empty
         if (locations.isEmpty()) {
-            addDemoLocation("University Fitness Center", -37.8368, 144.9280);
-            addDemoLocation("Riverside Running Park", -37.8200, 144.9500);
-            addDemoLocation("Home Workout Space", -37.8136, 144.9631);
-            locations = repository.getAllLocations(); // refresh list
+            addDemoLocation(userId, "Kathmandu Fitness Center", 27.7100, 85.3200);
+            addDemoLocation(userId, "Ratna Park Running Track", 27.7062, 85.3150);
+            addDemoLocation(userId, "National Stadium Gym", 27.6940, 85.3110);
+            locations = repository.getAllLocations(userId); // refresh list
         }
 
         for (GymLocation loc : locations) {
@@ -87,8 +95,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-    private void addDemoLocation(String name, double lat, double lng) {
-        repository.insert(new GymLocation(name, lat, lng));
+    private void addDemoLocation(int userId, String name, double lat, double lng) {
+        repository.insert(new GymLocation(userId, name, lat, lng));
     }
 
     private void showSaveLocationDialog(LatLng latLng) {
@@ -113,7 +121,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void saveLocationToDb(String name, LatLng latLng) {
         String formattedName = capitalizeWords(name);
-        GymLocation newLoc = new GymLocation(formattedName, latLng.latitude, latLng.longitude);
+        int userId = sessionManager.getUserId();
+        GymLocation newLoc = new GymLocation(userId, formattedName, latLng.latitude, latLng.longitude);
         repository.insert(newLoc);
         
         mMap.addMarker(new MarkerOptions()

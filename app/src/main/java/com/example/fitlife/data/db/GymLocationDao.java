@@ -10,8 +10,8 @@ import java.util.List;
 
 @Dao
 public interface GymLocationDao {
-    @Query("SELECT * FROM gym_locations")
-    List<GymLocation> getAllLocations();
+    @Query("SELECT * FROM gym_locations WHERE userId = :userId")
+    List<GymLocation> getAllLocations(int userId);
 
     @Query("SELECT * FROM gym_locations WHERE id = :id")
     GymLocation getLocationById(int id);

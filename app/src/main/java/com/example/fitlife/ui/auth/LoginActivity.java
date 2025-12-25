@@ -9,11 +9,13 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.fitlife.R;
 import com.example.fitlife.data.model.User;
 import com.example.fitlife.ui.home.DashboardActivity;
+import com.example.fitlife.utils.SessionManager;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class LoginActivity extends AppCompatActivity {
 
     private UserViewModel userViewModel;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +23,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        sessionManager = new SessionManager(this);
 
         TextInputEditText etEmail = findViewById(R.id.etEmail);
         TextInputEditText etPassword = findViewById(R.id.etPassword);
@@ -36,14 +39,17 @@ public class LoginActivity extends AppCompatActivity {
 
             if (userViewModel.checkLogin(email, password)) {
                 User user = userViewModel.getUserByEmail(email);
-                String name = (user != null && user.fullName != null) ? user.fullName : "Athlete";
-                
-                Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
-                intent.putExtra("USER_NAME", name); // Pass the name to the dashboard
-                startActivity(intent);
-                
-                Toast.makeText(this, "Logged in as " + name, Toast.LENGTH_SHORT).show();
-                finish();
+                if (user != null) {
+                    // SECURE: Save user ID in session
+                    sessionManager.createLoginSession(user.id);
+                    
+                    Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
+                    intent.putExtra("USER_NAME", user.fullName);
+                    startActivity(intent);
+                    
+                    Toast.makeText(this, "Welcome back, " + user.fullName, Toast.LENGTH_SHORT).show();
+                    finish();
+                }
             } else {
                 Toast.makeText(this, "Wrong email or password", Toast.LENGTH_SHORT).show();
             }

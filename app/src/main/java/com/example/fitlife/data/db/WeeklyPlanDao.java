@@ -9,8 +9,8 @@ import java.util.List;
 
 @Dao
 public interface WeeklyPlanDao {
-    @Query("SELECT * FROM weekly_plans")
-    List<WeeklyPlan> getFullPlan();
+    @Query("SELECT * FROM weekly_plans WHERE userId = :userId")
+    List<WeeklyPlan> getFullPlan(int userId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void updateDayPlan(WeeklyPlan plan);

@@ -11,8 +11,8 @@ import java.util.List;
 @Dao
 public interface WorkoutRoutineDao {
 
-    @Query("SELECT * FROM workout_routines ORDER BY id DESC")
-    List<WorkoutRoutine> getAllRoutines();
+    @Query("SELECT * FROM workout_routines WHERE userId = :userId ORDER BY id DESC")
+    List<WorkoutRoutine> getAllRoutines(int userId);
 
     @Query("SELECT * FROM workout_routines WHERE id = :routineId")
     WorkoutRoutine getRoutineById(int routineId);

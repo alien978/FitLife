@@ -93,7 +93,12 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
         }
 
         public void bind(final WorkoutRoutine routine) {
+            // CRUCIAL: Reset expansion state when binding to prevent recycling glitches
+            layoutExpandable.setVisibility(View.GONE);
+            tvExercisePreview.setVisibility(View.VISIBLE);
+
             tvRoutineName.setText(routine.name);
+            cbCompleted.setOnCheckedChangeListener(null); // Clear listener before setting value
             cbCompleted.setChecked(routine.isCompleted);
 
             // 1. Location Handling
@@ -109,11 +114,7 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
                         Uri gmmIntentUri = Uri.parse(geoUri);
                         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                         mapIntent.setPackage("com.google.android.apps.maps");
-                        if (mapIntent.resolveActivity(context.getPackageManager()) != null) {
-                            context.startActivity(mapIntent);
-                        } else {
-                            context.startActivity(new Intent(Intent.ACTION_VIEW, gmmIntentUri));
-                        }
+                        context.startActivity(mapIntent);
                     }
                 });
             } else {
@@ -121,37 +122,42 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
                 layoutFullLocation.setVisibility(View.GONE);
             }
 
-            // 2. Parse Exercises and Inflate Rows
+            // 2. Clear and Rebuild Exercise Rows
             containerFullExercises.removeAllViews();
-            if (routine.exercises != null && !routine.exercises.isEmpty()) {
-                String[] exerciseLines = routine.exercises.split("\n");
-                tvExercisePreview.setText(exerciseLines.length + " exercises • Tap to view details");
+            if (routine.exercises != null && !routine.exercises.trim().isEmpty()) {
+                String[] lines = routine.exercises.split("\n");
+                tvExercisePreview.setText(lines.length + " exercises • Tap to view");
 
-                for (String line : exerciseLines) {
+                for (String line : lines) {
+                    if (line.trim().isEmpty()) continue; // Skip empty lines
+                    
                     String[] parts = line.split(" - ");
-                    if (parts.length >= 1) {
-                        View exRow = LayoutInflater.from(context).inflate(R.layout.item_exercise_row, containerFullExercises, false);
-                        TextView tvName = exRow.findViewById(R.id.tvExName);
-                        TextView tvSetsReps = exRow.findViewById(R.id.tvExSetsReps);
-                        TextView tvNotes = exRow.findViewById(R.id.tvExNotes);
+                    View exRow = LayoutInflater.from(context).inflate(R.layout.item_exercise_row, containerFullExercises, false);
+                    
+                    TextView tvName = exRow.findViewById(R.id.tvExName);
+                    TextView tvSetsReps = exRow.findViewById(R.id.tvExSetsReps);
+                    TextView tvNotes = exRow.findViewById(R.id.tvExNotes);
 
-                        tvName.setText(parts[0]);
-                        
-                        String sets = (parts.length > 1) ? parts[1] : "0";
-                        String reps = (parts.length > 2) ? parts[2] : "0";
-                        tvSetsReps.setText(sets + " sets x " + reps + " reps");
+                    tvName.setText(parts[0]);
+                    String sets = (parts.length > 1) ? parts[1] : "0";
+                    String reps = (parts.length > 2) ? parts[2] : "0";
+                    tvSetsReps.setText(sets + " sets x " + reps + " reps");
 
-                        if (parts.length > 3 && !parts[3].equals("No notes")) {
-                            tvNotes.setText("Notes: " + parts[3]);
-                            tvNotes.setVisibility(View.VISIBLE);
-                        } else {
-                            tvNotes.setVisibility(View.GONE);
-                        }
-                        containerFullExercises.addView(exRow);
+                    if (parts.length > 3 && !parts[3].equalsIgnoreCase("No notes")) {
+                        tvNotes.setText("Notes: " + parts[3]);
+                        tvNotes.setVisibility(View.VISIBLE);
+                    } else {
+                        tvNotes.setVisibility(View.GONE);
                     }
+                    containerFullExercises.addView(exRow);
                 }
             } else {
-                tvExercisePreview.setText("No exercises • Tap to view details");
+                tvExercisePreview.setText("No exercises • Tap to edit");
+                TextView tvEmpty = new TextView(context);
+                tvEmpty.setText("No exercises added yet.");
+                tvEmpty.setPadding(0, 20, 0, 20);
+                tvEmpty.setTextColor(android.graphics.Color.GRAY);
+                containerFullExercises.addView(tvEmpty);
             }
 
             // 3. Equipment & Images
@@ -175,18 +181,16 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
 
             // 4. Click Actions
             cardRoutine.setOnClickListener(v -> {
-                boolean isExpanded = layoutExpandable.getVisibility() == View.VISIBLE;
-                layoutExpandable.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
-                tvExercisePreview.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+                boolean willExpand = layoutExpandable.getVisibility() == View.GONE;
+                layoutExpandable.setVisibility(willExpand ? View.VISIBLE : View.GONE);
+                tvExercisePreview.setVisibility(willExpand ? View.GONE : View.VISIBLE);
             });
 
             ibMenu.setOnClickListener(v -> showPopupMenu(v, routine));
 
             cbCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (routine.isCompleted != isChecked) {
-                    routine.isCompleted = isChecked;
-                    repository.update(routine);
-                }
+                routine.isCompleted = isChecked;
+                new Thread(() -> repository.update(routine)).start();
             });
         }
 
@@ -194,14 +198,12 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
             PopupMenu popup = new PopupMenu(context, view);
             popup.getMenu().add("Edit Routine");
             popup.getMenu().add("Send SMS Checklist");
-
             popup.setOnMenuItemClickListener(item -> {
-                String title = item.getTitle().toString();
-                if (title.equals("Edit Routine")) {
+                if (item.getTitle().equals("Edit Routine")) {
                     Intent intent = new Intent(context, EditRoutineActivity.class);
                     intent.putExtra("ROUTINE_ID", routine.id);
                     context.startActivity(intent);
-                } else if (title.equals("Send SMS Checklist")) {
+                } else if (item.getTitle().equals("Send SMS Checklist")) {
                     checkSmsPermission(routine);
                 }
                 return true;
@@ -225,9 +227,7 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
             Button btnSend = dialogView.findViewById(R.id.btnConfirmSendSms);
 
             String prefilledMsg = "FitLife Checklist: " + routine.name + "\n" +
-                    "Location: " + (routine.locationName != null ? routine.locationName : "None") + "\n\n" +
-                    "Equipment:\n" + formatBulletedList(routine.equipment) + 
-                    "\n\nExercises:\n" + routine.exercises;
+                    "Equipment:\n" + formatBulletedList(routine.equipment);
             etMsg.setText(prefilledMsg);
 
             AlertDialog dialog = new AlertDialog.Builder(context).setView(dialogView).create();
@@ -239,12 +239,7 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
                 try {
                     SmsManager smsManager = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) ? 
                         context.getSystemService(SmsManager.class) : SmsManager.getDefault();
-                    if (msg.length() > 160) {
-                        ArrayList<String> parts = smsManager.divideMessage(msg);
-                        smsManager.sendMultipartTextMessage(phone, null, parts, null, null);
-                    } else {
-                        smsManager.sendTextMessage(phone, null, msg, null, null);
-                    }
+                    smsManager.sendTextMessage(phone, null, msg, null, null);
                     Toast.makeText(context, "SMS Sent!", Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                 } catch (Exception e) { Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show(); }
@@ -253,7 +248,7 @@ public class RoutineAdapter extends RecyclerView.Adapter<RoutineAdapter.RoutineV
         }
 
         private String formatBulletedList(String text) {
-            if (text == null || text.isEmpty()) return "None";
+            if (text == null || text.trim().isEmpty()) return "No equipment listed";
             StringBuilder sb = new StringBuilder();
             for (String s : text.split("\n")) {
                 if (!s.trim().isEmpty()) sb.append("• ").append(s.trim()).append("\n");

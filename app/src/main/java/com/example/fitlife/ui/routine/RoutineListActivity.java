@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fitlife.R;
 import com.example.fitlife.data.model.WorkoutRoutine;
 import com.example.fitlife.data.repository.WorkoutRoutineRepository;
+import com.example.fitlife.utils.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,16 +26,16 @@ public class RoutineListActivity extends AppCompatActivity {
 
     private WorkoutRoutineRepository repository;
     private RoutineAdapter adapter;
+    private SessionManager sessionManager;
     private List<WorkoutRoutine> routineList = new ArrayList<>();
-    private View rootLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_routine_list);
 
-        rootLayout = findViewById(R.id.main);
         repository = new WorkoutRoutineRepository(getApplication());
+        sessionManager = new SessionManager(this);
 
         RecyclerView recycler = findViewById(R.id.recyclerRoutines);
         recycler.setLayoutManager(new LinearLayoutManager(this));
@@ -42,7 +43,6 @@ public class RoutineListActivity extends AppCompatActivity {
         adapter = new RoutineAdapter(routineList, this);
         recycler.setAdapter(adapter);
 
-        // Attach the custom swipe helper
         new ItemTouchHelper(new SwipeToDeleteCallback()).attachToRecyclerView(recycler);
 
         findViewById(R.id.btnAddRoutine).setOnClickListener(v -> 
@@ -56,16 +56,14 @@ public class RoutineListActivity extends AppCompatActivity {
     }
 
     private void loadRoutines() {
+        int userId = sessionManager.getUserId();
         routineList.clear();
-        routineList.addAll(repository.getAllRoutines());
+        // SECURE: Only load routines for the current user
+        routineList.addAll(repository.getAllRoutines(userId));
         adapter.notifyDataSetChanged();
     }
 
-    /**
-     * Custom ItemTouchHelper.Callback to draw the delete button and show a confirmation dialog.
-     */
     private class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
-
         private final Drawable deleteIcon;
         private final ColorDrawable background;
 
@@ -76,33 +74,23 @@ public class RoutineListActivity extends AppCompatActivity {
         }
 
         @Override
-        public boolean onMove(@NonNull RecyclerView r, @NonNull RecyclerView.ViewHolder vh, @NonNull RecyclerView.ViewHolder t) {
-            return false;
-        }
+        public boolean onMove(@NonNull RecyclerView r, @NonNull RecyclerView.ViewHolder vh, @NonNull RecyclerView.ViewHolder t) { return false; }
 
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-            int position = viewHolder.getAdapterPosition();
-            // Show confirmation dialog instead of deleting instantly
-            showDeleteConfirmationDialog(position);
+            showDeleteConfirmationDialog(viewHolder.getAdapterPosition());
         }
 
         @Override
-        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-            View itemView = viewHolder.itemView;
-
-            if (dX < 0) { // Swiping to the left
+        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView r, @NonNull RecyclerView.ViewHolder vh, float dX, float dY, int s, boolean active) {
+            super.onChildDraw(c, r, vh, dX, dY, s, active);
+            View itemView = vh.itemView;
+            if (dX < 0) {
                 background.setBounds(itemView.getRight() + (int) dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
                 background.draw(c);
-
                 int iconTop = itemView.getTop() + (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
                 int iconMargin = (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
-                int iconLeft = itemView.getRight() - iconMargin - deleteIcon.getIntrinsicWidth();
-                int iconRight = itemView.getRight() - iconMargin;
-                int iconBottom = iconTop + deleteIcon.getIntrinsicHeight();
-
-                deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                deleteIcon.setBounds(itemView.getRight() - iconMargin - deleteIcon.getIntrinsicWidth(), iconTop, itemView.getRight() - iconMargin, iconTop + deleteIcon.getIntrinsicHeight());
                 deleteIcon.draw(c);
             }
         }
@@ -111,20 +99,13 @@ public class RoutineListActivity extends AppCompatActivity {
     private void showDeleteConfirmationDialog(int position) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Routine")
-                .setMessage("Are you sure you want to delete this routine?")
+                .setMessage("Are you sure?")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    WorkoutRoutine routineToDelete = routineList.get(position);
-                    repository.delete(routineToDelete);
+                    repository.delete(routineList.get(position));
                     loadRoutines();
                 })
-                .setNegativeButton("Cancel", (dialog, which) -> {
-                    // User cancelled, refresh the adapter to bring the item back
-                    adapter.notifyItemChanged(position);
-                })
-                .setOnCancelListener(dialog -> {
-                    // If user cancels by tapping outside, also bring the item back
-                    adapter.notifyItemChanged(position);
-                })
+                .setNegativeButton("Cancel", (dialog, which) -> adapter.notifyItemChanged(position))
+                .setOnCancelListener(dialog -> adapter.notifyItemChanged(position))
                 .show();
     }
 }

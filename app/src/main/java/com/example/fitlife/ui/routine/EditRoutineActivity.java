@@ -26,15 +26,14 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import com.example.fitlife.R;
-import com.example.fitlife.data.db.AppDatabase;
 import com.example.fitlife.data.model.GymLocation;
 import com.example.fitlife.data.model.WorkoutRoutine;
 import com.example.fitlife.data.repository.WorkoutRoutineRepository;
 import com.example.fitlife.data.repository.GymLocationRepository;
+import com.example.fitlife.utils.SessionManager;
 import com.google.android.material.textfield.TextInputEditText;
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +48,7 @@ public class EditRoutineActivity extends AppCompatActivity {
 
     private WorkoutRoutineRepository repository;
     private GymLocationRepository locationRepository;
+    private SessionManager sessionManager;
     private TextInputEditText etRoutineName, etEquipment;
     private LinearLayout containerExercises;
     private WorkoutRoutine currentRoutine = null;
@@ -90,6 +90,7 @@ public class EditRoutineActivity extends AppCompatActivity {
 
         repository = new WorkoutRoutineRepository(getApplication());
         locationRepository = new GymLocationRepository(getApplication());
+        sessionManager = new SessionManager(this);
 
         etRoutineName = findViewById(R.id.etRoutineName);
         containerExercises = findViewById(R.id.containerExercises);
@@ -139,7 +140,7 @@ public class EditRoutineActivity extends AppCompatActivity {
 
     private void checkSmsPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, 101);
+            requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 101);
         } else {
             showSmsDialog();
         }
@@ -208,10 +209,9 @@ public class EditRoutineActivity extends AppCompatActivity {
         return sb.toString().trim();
     }
 
-    // --- REPOSITORY AND OTHER METHODS ---
-
     private void setupLocationSpinner() {
-        allLocations = locationRepository.getAllLocations();
+        int userId = sessionManager.getUserId();
+        allLocations = locationRepository.getAllLocations(userId);
         List<String> names = new ArrayList<>();
         names.add("No location assigned");
         for (GymLocation loc : allLocations) names.add(loc.name);
@@ -236,14 +236,18 @@ public class EditRoutineActivity extends AppCompatActivity {
     private void saveRoutine() {
         String name = etRoutineName.getText().toString().trim();
         if (name.isEmpty()) { Toast.makeText(this, "Enter name", Toast.LENGTH_SHORT).show(); return; }
+        
         String exercises = getCombinedExercises();
         String equipment = etEquipment.getText().toString().trim();
+        
         int locPos = spinnerLocation.getSelectedItemPosition();
         int locId = (locPos == 0) ? -1 : allLocations.get(locPos - 1).id;
         String locName = (locPos == 0) ? null : allLocations.get(locPos - 1).name;
+        int userId = sessionManager.getUserId();
 
         if (currentRoutine == null) {
-            repository.insert(new WorkoutRoutine(name, exercises, equipment, savedImageUriString, locId, locName));
+            // SECURE: Attach current userId to new routine
+            repository.insert(new WorkoutRoutine(userId, name, exercises, equipment, savedImageUriString, locId, locName));
         } else {
             currentRoutine.name = name;
             currentRoutine.exercises = exercises;

@@ -9,7 +9,7 @@ import com.example.fitlife.data.model.WorkoutRoutine;
 import com.example.fitlife.data.model.WeeklyPlan;
 import com.example.fitlife.data.model.GymLocation;
 
-@Database(entities = {User.class, WorkoutRoutine.class, WeeklyPlan.class, GymLocation.class}, version = 10, exportSchema = false)
+@Database(entities = {User.class, WorkoutRoutine.class, WeeklyPlan.class, GymLocation.class}, version = 11, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract UserDao userDao();
